@@ -241,7 +241,7 @@ checkoutForm.addEventListener('submit', (e) => {
     });
 
     // 2. Susun seluruh isi chat WhatsApp 
-    const nomorToko = "62"; // GANTI DENGAN NOMOR WHATSAPP TOKO (Format wajib 62 di depan)
+    const nomorToko = "6282143265465"; // GANTI DENGAN NOMOR WHATSAPP TOKO (Format wajib 62 di depan)
     
     const isiChat = `Saya mau pesan:` +
                    ` \n${itemText}\n` +
