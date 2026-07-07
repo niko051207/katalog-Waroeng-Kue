@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Waroeng Kue</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        <div class="flex justify-between items-center border-b border-gray-200 pb-4">
+            <h1 class="text-xl font-bold text-amber-700">Admin Panel - Waroeng Kue</h1>
+            <a href="index.html" class="text-sm text-gray-500 hover:text-gray-700">Lihat Toko ↗</a>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-xs border border-gray-100">
+            <h2 class="text-base font-bold mb-4 text-gray-850">Tambah Menu Kue Baru</h2>
+            <form id="admin-product-form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Kue</label>
+                    <input type="text" id="prod-name" required placeholder="Nama kue..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Harga (Rupiah)</label>
+                    <input type="number" id="prod-price" required placeholder="Contoh: 3500" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kategori</label>
+                    <select id="prod-category" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+                        <option value="Kering">Kering</option>
+                        <option value="Basah">Basah</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status Awal</label>
+                    <select id="prod-status" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+                        <option value="ready">Ready Stock</option>
+                        <option value="po">Pre-Order (PO)</option>
+                        <option value="habis">Habis Hari Ini</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Link/URL Foto Kue</label>
+                    <input type="url" id="prod-image" required placeholder="https://example.com/foto-kue.jpg" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+                </div>
+                <div class="md:col-span-2 pt-2">
+                    <button type="submit" class="w-full bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm py-3 rounded-xl shadow-md transition">
+                        Simpan ke Database Supabase
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-xs border border-gray-100">
+            <h2 class="text-base font-bold mb-4 text-gray-850">Daftar Menu Saat Ini</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-100 text-gray-400 text-xs uppercase font-bold">
+                            <th class="py-3">Kue</th>
+                            <th class="py-3">Harga</th>
+                            <th class="py-3">Status</th>
+                            <th class="py-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-product-table" class="divide-y divide-gray-50">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
