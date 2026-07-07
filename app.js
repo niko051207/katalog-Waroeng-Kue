@@ -106,16 +106,27 @@ categoryButtons.forEach(button => {
 });
 
 // 6. LOGIKA KERANJANG 
-function addToCart(productId) {
+function addToCart(productId, manualQty = null) {
     const product = currentProducts.find(p => p.id === productId);
     if (!product) return;
 
     const cartItem = cart.find(item => item.id === productId);
 
     if (cartItem) {
-        cartItem.quantity += 1;
+        if (manualQty !== null) {
+            cartItem.quantity = manualQty;
+        } else {
+            cartItem.quantity += 1;
+        }
     } else {
-        cart.push({ ...product, quantity: 1 });
+        const qtyToAdds = manualQty !== null ? manualQty : 1;
+        cart.push({ ...product, quantity: qtyToAdds });
+    }
+
+    // Jika jumlah diinput manual menjadi 0 atau kosong, hapus dari keranjang
+    if (cartItem && cartItem.quantity <= 0) {
+        const index = cart.findIndex(item => item.id === productId);
+        cart.splice(index, 1);
     }
 
     updateCartUI();
@@ -190,16 +201,27 @@ checkoutTrigger.addEventListener('click', () => {
     cart.forEach(item => {
         totalPrice += item.price * item.quantity;
         const itemHTML = `
-            <div class="flex justify-between items-center py-2 text-sm">
-                <div>
-                    <span class="font-semibold text-gray-800">${item.name}</span>
-                    <span class="text-xs text-gray-400 ml-1">x${item.quantity}</span>
-                    <span class="block text-[10px] text-gray-400">(${item.status === 'po' ? 'Pre-Order' : 'Ready Stock'})</span>
+            <div class="flex justify-between items-center py-3 border-b border-gray-50 text-sm">
+                <div class="flex-1 min-w-0 pr-2">
+                    <span class="font-semibold text-gray-800 block truncate">${item.name}</span>
+                    <span class="text-[10px] text-gray-400 block">${item.status === 'po' ? 'Pre-Order' : 'Ready Stock'}</span>
                 </div>
-                <span class="font-medium text-gray-700">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
-                <button onclick="removeFromCart(${item.id})" class="p-1 text-red-500 hover:bg-red-50 rounded-lg transition" title="Hapus 1">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+                
+                <div class="flex items-center gap-1.5 mr-4">
+                    <button onclick="changeQtyInModal(${item.id}, -1)" class="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-650 rounded-lg font-bold transition">-</button>
+                    
+                    <input type="number" min="1" value="${item.quantity}" 
+                        oninput="handleManualQtyInput(${item.id}, this.value)"
+                        class="w-14 h-7 text-center bg-gray-50 border border-gray-200 rounded-lg font-medium text-gray-800 focus:outline-none focus:border-amber-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    
+                    <button onclick="changeQtyInModal(${item.id}, 1)" class="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-650 rounded-lg font-bold transition">+</button>
+                </div>
+
+                <div class="text-right flex items-center gap-2">
+                    <span class="font-medium text-gray-700 min-w-[80px] block">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</span>
+                    <button onclick="forceRemoveFromCart(${item.id})" class="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Hapus Semua">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                         </svg>
                     </button>
                 </div>
@@ -259,5 +281,67 @@ checkoutForm.addEventListener('submit', (e) => {
     // Buka WhatsApp di tab baru
     window.open(whatsappURL, '_blank');
 });
+// Fungsi untuk tombol + dan - di dalam modal
+function changeQtyInModal(productId, change) {
+    const cartItem = cart.find(item => item.id === productId);
+    if (!cartItem) return;
+
+    const newQty = cartItem.quantity + change;
+    
+    if (newQty <= 0) {
+        forceRemoveFromCart(productId);
+    } else {
+        addToCart(productId, newQty);
+        // Refresh modal agar total harga per item & total keseluruhan langsung terupdate
+        checkoutTrigger.click(); 
+    }
+}
+
+// Fungsi ketika pelanggan mengetik langsung angka (misal: 150)
+function handleManualQtyInput(productId, value) {
+    let intValue = parseInt(value);
+    
+    // Jika input dikosongkan sementara oleh user, biarkan atau set ke 0 dulu
+    if (isNaN(intValue) || intValue < 0) intValue = 0; 
+
+    addToCart(productId, intValue);
+    
+    // Update total harga paling bawah di modal secara real-time tanpa me-render ulang seluruh modal (mencegah kehilangan fokus ketikan)
+    let totalPrice = 0;
+    cart.forEach(item => {
+        totalPrice += item.price * item.quantity;
+    });
+    modalTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+    
+    // Update juga subtotal per item di baris tersebut
+    const item = cart.find(p => p.id === productId);
+    if(item) {
+        // Cari element harga terdekat untuk diupdate text-nya (opsional, jika ingin super smooth)
+        // Namun cara paling aman yang simpel agar text WA sinkron adalah membiarkan user mengetik, 
+        // dan ketika modal di-refresh, data sudah aman.
+    }
+    
+    // Menutup modal otomatis jika keranjang jadi kosong saat angka dihapus
+    if (cart.length === 0) {
+        checkoutModal.classList.add('hidden');
+        checkoutModal.classList.remove('flex');
+    }
+}
+
+// Fungsi hapus total produk dari keranjang (ikon tempat sampah)
+function forceRemoveFromCart(productId) {
+    const cartItemIndex = cart.findIndex(item => item.id === productId);
+    if (cartItemIndex > -1) {
+        cart.splice(cartItemIndex, 1);
+    }
+    updateCartUI();
+
+    if (cart.length > 0) {
+        checkoutTrigger.click();
+    } else {
+        checkoutModal.classList.add('hidden');
+        checkoutModal.classList.remove('flex');
+    }
+}
 
 fetchProductsFromSupabase();
