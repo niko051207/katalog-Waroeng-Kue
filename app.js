@@ -296,7 +296,7 @@ checkoutForm.addEventListener('submit', (e) => {
     cart.forEach((item, index) => {
         totalPrice += item.price * item.quantity;
         const statusType = item.status === 'po' ? '[PO]' : '[Ready]';
-        itemText += `${index + 1}. ${item.name} x${item.quantity} ${statusType}\n`;
+        itemText += `${index + 1}. ${item.name} x${item.quantity}\n`;
     });
 
     // 2. Susun seluruh isi chat WhatsApp 
@@ -337,31 +337,49 @@ function changeQtyInModal(productId, change) {
     }
 }
 
-// Fungsi ketika pelanggan mengetik langsung angka (misal: 150)
+// Fungsi ketika pelanggan mengetik langsung angka kuantitas di modal
 function handleManualQtyInput(productId, value) {
     let intValue = parseInt(value);
     
-    // Jika input dikosongkan sementara oleh user, biarkan atau set ke 0 dulu
+    // Jika input dikosongkan sementara oleh user saat mengetik, biarkan atau set ke 0 dulu
     if (isNaN(intValue) || intValue < 0) intValue = 0; 
 
+    // 1. Update data internal keranjang
     addToCart(productId, intValue);
     
-    // Update total harga paling bawah di modal secara real-time tanpa me-render ulang seluruh modal (mencegah kehilangan fokus ketikan)
+    // 2. KALKULASI LANGSUNG SUBTOTAL PER ITEM (Deteksi baris yang sedang diketik)
+    const item = cart.find(p => p.id === productId);
+    const product = currentProducts.find(p => p.id === productId);
+    
+    if (product) {
+        // Hitung subtotal baru untuk item ini
+        const currentQty = item ? item.quantity : 0;
+        const newSubtotal = product.price * currentQty;
+        
+        // Cari element text harga di baris modal tersebut menggunakan JavaScript DOM
+        // Kita bisa memanfaatkan event.target secara tidak langsung, atau karena kita tahu struktur HTML-nya, 
+        // kita cari input yang sedang aktif, lalu melompat ke element harga di sebelahnya.
+        const activeInput = document.activeElement;
+        if (activeInput && activeInput.tagName === 'INPUT') {
+            // Naik ke parent div input, lalu cari kontainer harga di sebelahnya
+            const itemRow = activeInput.closest('.flex.justify-between.items-center');
+            if (itemRow) {
+                const subtotalSpan = itemRow.querySelector('.text-right span');
+                if (subtotalSpan) {
+                    subtotalSpan.textContent = `Rp ${newSubtotal.toLocaleString('id-ID')}`;
+                }
+            }
+        }
+    }
+    
+    // 3. Update total harga keseluruhan paling bawah di modal
     let totalPrice = 0;
     cart.forEach(item => {
         totalPrice += item.price * item.quantity;
     });
     modalTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
     
-    // Update juga subtotal per item di baris tersebut
-    const item = cart.find(p => p.id === productId);
-    if(item) {
-        // Cari element harga terdekat untuk diupdate text-nya (opsional, jika ingin super smooth)
-        // Namun cara paling aman yang simpel agar text WA sinkron adalah membiarkan user mengetik, 
-        // dan ketika modal di-refresh, data sudah aman.
-    }
-    
-    // Menutup modal otomatis jika keranjang jadi kosong saat angka dihapus
+    // 4. Menutup modal otomatis jika semua angka dihapus/di-nol-kan
     if (cart.length === 0) {
         checkoutModal.classList.add('hidden');
         checkoutModal.classList.remove('flex');
