@@ -4,8 +4,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentProducts = []; 
-let cart = [];
-
+let cart = JSON.parse(localStorage.getItem('waroeng_kue_cart')) || [];
 // 2. SELEKTOR DOM
 const productGrid = document.getElementById('product-grid');
 const categoryButtons = document.querySelectorAll('.category-filter');
@@ -33,6 +32,10 @@ async function fetchProductsFromSupabase() {
     }
 }
 
+function saveCartToStorage() {
+    localStorage.setItem('waroeng_kue_cart', JSON.stringify(cart));
+}
+
 // 4. FUNGSI UNTUK MENAMPILKAN KUE KE LAYAR (RENDER)
 function renderProducts(products) {
     productGrid.innerHTML = ""; 
@@ -43,17 +46,17 @@ function renderProducts(products) {
         let buttonHTML = '';
 
         if (product.status === 'ready') {
-            statusBadge = ``;
-            buttonHTML = `<button onclick="addToCart(${product.id})" class="w-full mt-3 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold py-2 rounded-xl transition flex items-center justify-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
+             statusBadge = ``;
+             buttonHTML = `<button id="btn-add-${product.id}" onclick="addToCart(${product.id})" class="w-full mt-3 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold py-2 rounded-xl transition flex items-center justify-center gap-1">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                             </svg> Keranjang
-                          </button>`;
+                           </button>`;
         } else if (product.status === 'po') {
             statusBadge = `<span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">Khusus PO</span>`;
-            buttonHTML = `<button onclick="addToCart(${product.id})" class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-xl transition flex items-center justify-center gap-1">
-                            Pesan PO
-                          </button>`;
+            buttonHTML = `<button id="btn-add-${product.id}" onclick="addToCart(${product.id})" class="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded-xl transition flex items-center justify-center gap-1">
+                           Pesan PO
+                        </button>`;
         } else if (product.status === 'habis') {
             statusBadge = `<span class="bg-red-50 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider">Habis Hari Ini</span>`;
             cardStyle += ' opacity-60';
@@ -128,6 +131,39 @@ function addToCart(productId, manualQty = null) {
         const index = cart.findIndex(item => item.id === productId);
         cart.splice(index, 1);
     }
+// --- ANIMASI VISUAL FEEDBACK (Hanya jalan jika klik tombol biasa, bukan ketik manual) ---
+    if (manualQty === null) {
+        const targetBtn = document.getElementById(`btn-add-${productId}`);
+        
+        if (targetBtn) {
+            const tksAwal = targetBtn.innerHTML; // Simpan teks/ikon asli
+            
+            // 1. Ubah tombol jadi hijau tanda sukses
+            targetBtn.innerHTML = "✓ Berhasil";
+            targetBtn.classList.remove('bg-amber-700', 'hover:bg-amber-800', 'bg-blue-600', 'hover:bg-blue-700');
+            targetBtn.classList.add('bg-emerald-600');
+            targetBtn.disabled = true; // Mencegah double click spam saat animasi berjalan
+            
+            // 2. Beri efek "Pop" membesar pada Badge Angka Keranjang di Header
+            cartCountBadge.classList.add('scale-125', 'duration-200');
+
+            // 3. Kembalikan ke semula setelah 1 detik (1000 ms)
+            setTimeout(() => {
+                targetBtn.innerHTML = tksAwal;
+                targetBtn.classList.remove('bg-emerald-600');
+                // Kembalikan warna asli sesuai status produk
+                const prod = currentProducts.find(p => p.id === productId);
+                if (prod && prod.status === 'po') {
+                    targetBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                } else {
+                    targetBtn.classList.add('bg-amber-700', 'hover:bg-amber-800');
+                }
+                targetBtn.disabled = false;
+                cartCountBadge.classList.remove('scale-125');
+            }, 1000);
+        }
+    }
+    // -------------------------------------------------------------------------------------
 
     updateCartUI();
 }
@@ -182,6 +218,7 @@ function updateCartUI() {
     // Update Angka di Bottom Bar
     bottomCartQty.textContent = totalItems;
     bottomTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+    saveCartToStorage();
 }
 
 // 6. LOGIKA MODAL POP-UP & PENGIRIMAN WHATSAPP
@@ -280,6 +317,9 @@ checkoutForm.addEventListener('submit', (e) => {
 
     // Buka WhatsApp di tab baru
     window.open(whatsappURL, '_blank');
+    cart = [];
+    updateCartUI();
+    checkoutModal.classList.add('hidden');
 });
 // Fungsi untuk tombol + dan - di dalam modal
 function changeQtyInModal(productId, change) {
@@ -345,3 +385,4 @@ function forceRemoveFromCart(productId) {
 }
 
 fetchProductsFromSupabase();
+updateCartUI();
