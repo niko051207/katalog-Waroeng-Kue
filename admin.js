@@ -61,18 +61,48 @@ adminForm.addEventListener('submit', async (e) => {
     const price = parseInt(document.getElementById('prod-price').value);
     const category = document.getElementById('prod-category').value;
     const status = document.getElementById('prod-status').value;
-    const image = document.getElementById('prod-image').value;
+    
+    // Ambil file gambar mentah dari input
+    const imageInput = document.getElementById('prod-image');
+    const file = imageInput.files[0];
+
+    if (!file) {
+        alert("Silakan pilih foto kue terlebih dahulu!");
+        return;
+    }
 
     try {
-        const { error } = await supabaseClient
+        // Buat nama file unik agar tidak bentrok di storage (misal: 1712345678_kue-lumpur.jpg)
+        const fileExtension = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}.${fileExtension}`;
+
+        // 1. UPLOAD GAMBAR KE SUPABASE STORAGE
+        // Catatan: Pastikan kamu sudah membuat Bucket bernama 'cake-images' di dashboard Supabase-mu dan set ke Public!
+        const { data: storageData, error: storageError } = await supabaseClient
+            .storage
+            .from('cake-images')
+            .upload(fileName, file);
+
+        if (storageError) throw storageError;
+
+        // 2. AMBIL URL PUBLIK DARI GAMBAR YANG SUDAH DI-UPLOAD
+        const { data: publicUrlData } = supabaseClient
+            .storage
+            .from('cake-images')
+            .getPublicUrl(fileName);
+
+        const imageUrl = publicUrlData.publicUrl;
+
+        // 3. SIMPAN SEMUA DATA (TERMASUK URL GAMBAR BARU) KE TABEL PRODUCTS
+        const { error: insertError } = await supabaseClient
             .from('products')
-            .insert([{ name, price, category, status, image }]);
+            .insert([{ name, price, category, status, image: imageUrl }]);
 
-        if (error) throw error;
+        if (insertError) throw insertError;
 
-        alert("Kue berhasil ditambahkan!");
-        adminForm.reset(); // Kosongkan form kembali
-        fetchAdminProducts(); // Refresh tabel biar menu baru langsung muncul
+        alert("Kue dan Foto berhasil ditambahkan!");
+        adminForm.reset(); 
+        fetchAdminProducts(); 
     } catch (error) {
         alert("Gagal menambah kue: " + error.message);
     }
