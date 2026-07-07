@@ -6,6 +6,7 @@
     <title>Admin - Waroeng Kue</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
+
 <body class="bg-gray-50 text-gray-900 p-4 md:p-8">
 
     <div class="max-w-4xl mx-auto space-y-8">
@@ -57,13 +58,14 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm border-collapse">
                     <thead>
-                        <tr class="border-b border-gray-100 text-gray-400 text-xs uppercase font-bold">
-                            <th class="py-3">Kue</th>
-                            <th class="py-3">Harga</th>
-                            <th class="py-3">Status</th>
-                            <th class="py-3 text-right">Aksi</th>
-                        </tr>
-                    </thead>
+    <tr class="border-b border-gray-200 text-gray-400 text-xs uppercase font-bold align-middle">
+        <th class="py-3 pl-2 pr-4 text-left">Kue</th>
+        <th class="py-3 px-4 text-center w-36">Harga</th>
+        <th class="py-3 px-4 text-center w-32">Kategori</th>
+        <th class="py-3 px-4 text-center w-32">Status</th>
+        <th class="py-3 pl-4 pr-2 text-center w-24">Aksi</th>
+    </tr>
+</thead>
                     <tbody id="admin-product-table" class="divide-y divide-gray-50">
                         </tbody>
                 </table>
@@ -73,5 +75,66 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin.js"></script>
+    <div id="edit-modal" class="hidden fixed inset-0 z-50 bg-black/50 items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-xl flex flex-col overflow-hidden animate-slide-up">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h2 class="text-base font-bold text-gray-800">Edit Detail Kue</h2>
+            <button onclick="closeEditModal()" class="p-1 text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <form id="edit-product-form" class="p-6 space-y-4">
+            <input type="hidden" id="edit-prod-id">
+            
+            <div class="flex items-center gap-4 bg-amber-50/50 p-3 rounded-xl border border-amber-100/70">
+                <img id="edit-preview-img" class="w-16 h-16 object-cover rounded-xl bg-white border border-gray-200 shadow-xs">
+                <div class="flex-1">
+                    <label class="block text-xs font-bold text-amber-900 uppercase mb-1">Foto Kue</label>
+                    <input type="file" id="edit-prod-image" accept="image/*" class="block w-full text-xs text-gray-550 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-700 file:text-white hover:file:bg-amber-800 cursor-pointer">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Kue</label>
+                <input type="text" id="edit-prod-name" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Harga (Rp)</label>
+                <input type="number" id="edit-prod-price" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kategori</label>
+                    <select id="edit-prod-category" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-amber-700">
+                        <option value="Kering">Kering</option>
+                        <option value="Basah">Basah</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
+                    <select id="edit-prod-status" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-sm focus:outline-none focus:border-amber-700">
+                        <option value="ready">Ready</option>
+                        <option value="po">PO</option>
+                        <option value="habis">Habis</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="closeEditModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold text-sm py-2.5 rounded-xl transition">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-sm py-2.5 rounded-xl shadow-md transition">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>
