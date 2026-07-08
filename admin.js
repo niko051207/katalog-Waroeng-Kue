@@ -84,16 +84,15 @@ async function fetchAdminProducts() {
     }
 }
 
-// FUNGSI TAMPILKAN KE TABEL ADMIN (VERSI FULLY EDITABLE)
-// FUNGSI TAMPILKAN KE TABEL ADMIN (VERSI RAPI & SIMETRIS)
+// FUNGSI TAMPILKAN KE TABEL ADMIN (VERSI PERFECT DESKTOP SPACING)
 function renderAdminTable(products) {
     adminTable.innerHTML = "";
     products.forEach(product => {
         adminTable.innerHTML += `
-            <tr class="hover:bg-gray-50/70 transition-colors border-b border-gray-100 align-middle">
+            <tr class="flex flex-col md:table-row border-b border-gray-150 md:border-gray-100 p-4 md:p-0 mb-4 md:mb-0 bg-white md:bg-transparent rounded-2xl md:rounded-none shadow-2xs md:shadow-none hover:bg-gray-50/70 transition-colors align-middle">
                 
-                <td class="py-3.5 pl-2 pr-4 min-w-[280px] max-w-[350px]">
-                    <div class="flex items-center gap-3.5">
+                <td class="py-2 md:py-4 pl-0 md:pl-4 pr-0 md:pr-4 w-full md:w-auto">
+                    <div class="flex items-center gap-4">
                         <div class="relative group w-12 h-12 shrink-0 shadow-2xs rounded-xl overflow-hidden border border-gray-150">
                             <img src="${product.image}" class="w-full h-full object-cover">
                             <label class="absolute inset-0 bg-black/60 text-[10px] text-white font-bold opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center transition-opacity duration-200">
@@ -102,15 +101,16 @@ function renderAdminTable(products) {
                             </label>
                         </div>
                         
-                        <div class="w-full">
+                        <div class="w-full max-w-xs md:max-w-sm">
                             <input type="text" value="${product.name}" 
                                 onblur="updateProductField(${product.id}, 'name', this.value)"
-                                class="w-full font-semibold text-gray-800 bg-transparent border border-transparent hover:border-gray-200 focus:border-amber-700 focus:bg-white px-2 py-1.5 rounded-xl text-sm transition focus:outline-none focus:shadow-xs">
+                                class="w-full font-bold md:font-semibold text-gray-900 md:text-gray-800 bg-gray-50 md:bg-transparent border border-gray-200 md:border-transparent hover:border-gray-200 focus:border-amber-700 focus:bg-white px-2.5 py-1.5 rounded-xl text-sm transition focus:outline-none focus:shadow-xs">
                         </div>
                     </div>
                 </td>
 
-                <td class="py-3.5 px-4 w-36">
+                <td class="py-1 md:py-4 px-0 md:px-6 w-full md:w-44 mt-2 md:mt-0">
+                    <span class="block md:hidden text-[10px] font-bold text-gray-400 uppercase mb-1">Harga</span>
                     <div class="flex items-center gap-1 bg-gray-50 hover:bg-white border border-gray-200 focus-within:border-amber-700 focus-within:bg-white rounded-xl px-2.5 py-1.5 transition focus-within:shadow-xs">
                         <span class="text-xs text-gray-400 font-bold select-none">Rp</span>
                         <input type="number" value="${product.price}" 
@@ -119,7 +119,8 @@ function renderAdminTable(products) {
                     </div>
                 </td>
 
-                <td class="py-3.5 px-4 w-32">
+                <td class="py-1 md:py-4 px-0 md:px-6 w-full md:w-40 mt-2 md:mt-0">
+                    <span class="block md:hidden text-[10px] font-bold text-gray-400 uppercase mb-1">Kategori</span>
                     <select onchange="updateProductField(${product.id}, 'category', this.value)" 
                         class="w-full bg-gray-50 hover:bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-amber-700 transition cursor-pointer focus:shadow-xs">
                         <option value="Kering" ${product.category === 'Kering' ? 'selected' : ''}>Kering</option>
@@ -127,7 +128,8 @@ function renderAdminTable(products) {
                     </select>
                 </td>
 
-                <td class="py-3.5 px-4 w-32">
+                <td class="py-1 md:py-4 px-0 md:px-6 w-full md:w-40 mt-2 md:mt-0">
+                    <span class="block md:hidden text-[10px] font-bold text-gray-400 uppercase mb-1">Status</span>
                     <select onchange="updateProductField(${product.id}, 'status', this.value)" 
                         class="w-full bg-gray-50 hover:bg-white border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-amber-700 transition cursor-pointer focus:shadow-xs">
                         <option value="ready" ${product.status === 'ready' ? 'selected' : ''}>Ready</option>
@@ -136,8 +138,8 @@ function renderAdminTable(products) {
                     </select>
                 </td>
 
-                <td class="py-3.5 pl-4 pr-2 w-24 text-center">
-                    <button onclick="archiveProduct(${product.id})" class="text-xs font-bold text-red-500 hover:text-white border border-transparent hover:border-red-200 hover:bg-red-500 px-3 py-1.5 rounded-xl transition duration-200">
+                <td class="py-2 md:py-4 pl-0 md:pl-6 pr-0 md:pr-4 w-full md:w-28 text-right mt-3 md:mt-0 border-t border-dashed border-gray-100 md:border-none pt-3 md:pt-0">
+                    <button onclick="archiveProduct(${product.id})" class="w-full md:w-auto text-xs font-bold text-red-500 hover:text-white border border-red-200 md:border-transparent hover:bg-red-500 px-3 py-2 md:py-1.5 rounded-xl transition duration-200 text-center block md:inline-block">
                         Arsip
                     </button>
                 </td>
