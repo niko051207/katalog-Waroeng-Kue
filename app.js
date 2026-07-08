@@ -276,6 +276,11 @@ checkoutTrigger.addEventListener('click', () => {
 
 // Fungsi Menutup Modal
 closeModalBtn.addEventListener('click', () => {
+    // Bersihkan item yang kuantitasnya 0 atau kosong saat modal ditinggalkan
+    cart = cart.filter(item => item.quantity > 0);
+    
+    // Update ulang UI luar agar sinkron
+    updateCartUI();
     checkoutModal.classList.add('hidden');
     checkoutModal.classList.remove('flex');
 });
@@ -337,31 +342,24 @@ function changeQtyInModal(productId, change) {
     }
 }
 
-// Fungsi ketika pelanggan mengetik langsung angka kuantitas di modal
+// Fungsi ketika pelanggan mengetik langsung angka kuantitas di modal (VERSI ANTI-CLOSING)
 function handleManualQtyInput(productId, value) {
+    // 1. Jika input kosong (dihapus total oleh user), biarkan internal datanya 0 dulu, JANGAN dihapus dari array
     let intValue = parseInt(value);
-    
-    // Jika input dikosongkan sementara oleh user saat mengetik, biarkan atau set ke 0 dulu
     if (isNaN(intValue) || intValue < 0) intValue = 0; 
 
-    // 1. Update data internal keranjang
-    addToCart(productId, intValue);
-    
-    // 2. KALKULASI LANGSUNG SUBTOTAL PER ITEM (Deteksi baris yang sedang diketik)
-    const item = cart.find(p => p.id === productId);
+    // 2. Cari item di keranjang
+    const cartItem = cart.find(item => item.id === productId);
+    if (cartItem) {
+        cartItem.quantity = intValue; // Set ke 0 atau angka baru, tapi tetap stay di keranjang
+    }
+
+    // 3. KALKULASI LANGSUNG SUBTOTAL PER ITEM
     const product = currentProducts.find(p => p.id === productId);
-    
     if (product) {
-        // Hitung subtotal baru untuk item ini
-        const currentQty = item ? item.quantity : 0;
-        const newSubtotal = product.price * currentQty;
-        
-        // Cari element text harga di baris modal tersebut menggunakan JavaScript DOM
-        // Kita bisa memanfaatkan event.target secara tidak langsung, atau karena kita tahu struktur HTML-nya, 
-        // kita cari input yang sedang aktif, lalu melompat ke element harga di sebelahnya.
+        const newSubtotal = product.price * intValue;
         const activeInput = document.activeElement;
         if (activeInput && activeInput.tagName === 'INPUT') {
-            // Naik ke parent div input, lalu cari kontainer harga di sebelahnya
             const itemRow = activeInput.closest('.flex.justify-between.items-center');
             if (itemRow) {
                 const subtotalSpan = itemRow.querySelector('.text-right span');
@@ -372,18 +370,27 @@ function handleManualQtyInput(productId, value) {
         }
     }
     
-    // 3. Update total harga keseluruhan paling bawah di modal
+    // 4. Update total harga keseluruhan di bagian bawah modal
     let totalPrice = 0;
+    let totalItems = 0;
     cart.forEach(item => {
         totalPrice += item.price * item.quantity;
+        totalItems += item.quantity;
     });
     modalTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
-    
-    // 4. Menutup modal otomatis jika semua angka dihapus/di-nol-kan
-    if (cart.length === 0) {
-        checkoutModal.classList.add('hidden');
-        checkoutModal.classList.remove('flex');
+
+    // 5. Update UI background (badge atas & bottom bar luar) tanpa mengganggu modal
+    if (totalItems > 0) {
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.remove('hidden');
+        bottomBar.classList.remove('hidden');
+        bottomBar.classList.add('flex');
     }
+    bottomCartQty.textContent = totalItems;
+    bottomTotalPrice.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+
+    // Simpan ke localStorage data sementaranya
+    localStorage.setItem('waroeng_kue_cart', JSON.stringify(cart));
 }
 
 // Fungsi hapus total produk dari keranjang (ikon tempat sampah)
